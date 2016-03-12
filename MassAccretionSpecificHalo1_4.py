@@ -285,6 +285,7 @@ SAMPLE DATA LINE NUMBERS (grep -n), SCALE FACTOR, ID,  MASS.
 #specified_tree = np.array([ 9461592449 ])
 #specified_tree = np.array([9461592449, 9462511558, 9462512272, 9462513190])
 #specified_tree = np.array([ 9461448043, 9461448697, 9461448672])
+'''
 specified_tree = np.array([ 9461447027,
 9461474193,
 9461475721,
@@ -295,10 +296,18 @@ specified_tree = np.array([ 9461447027,
 9461579639,
 9461592903,
 9461591850])
+'''
+specified_tree = np.array([9461474193,
+9462501008,
+9461592449,
+9462511558,
+9462512272,
+9462513190 ])
+
 
 #Set to 1.0 to find everything. Set to 0.5 to find half of the list. 
 #specified_find_fraction = 1.0
-specified_find_fraction = 0.1
+specified_find_fraction = 0.3
 orig_len_specified_tree = len(specified_tree)
 
 mass1      =[]      #Initialized the mass array. Will store a single tree history
