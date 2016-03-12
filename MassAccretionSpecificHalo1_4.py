@@ -13,7 +13,7 @@ from matplotlib.ticker import FormatStrFormatter
 """
 Program Notes:
 
-This code is GOOD! Version v.1_3 makes one plot.
+This code is GOOD! Version v.1_4 attempts to make many plot.
 
 In v1.4 i would like to expand to plot multiple until done. 
 
@@ -282,9 +282,24 @@ SAMPLE DATA LINE NUMBERS (grep -n), SCALE FACTOR, ID,  MASS.
 #specified_tree = [ 9461448171 ]
 #specified_tree = [ 9461485245 ]
 #specified_tree = [ 9461448043 ]
-specified_tree = [ 9461592449 ]
-#specified_trees = [9461592449, 9462511558, 9462512272, 9462513190]
+#specified_tree = np.array([ 9461592449 ])
+#specified_tree = np.array([9461592449, 9462511558, 9462512272, 9462513190])
+#specified_tree = np.array([ 9461448043, 9461448697, 9461448672])
+specified_tree = np.array([ 9461447027,
+9461474193,
+9461475721,
+9461473336,
+9462501008,
+9461583091,
+9461462171,
+9461579639,
+9461592903,
+9461591850])
 
+#Set to 1.0 to find everything. Set to 0.5 to find half of the list. 
+#specified_find_fraction = 1.0
+specified_find_fraction = 0.1
+orig_len_specified_tree = len(specified_tree)
 
 mass1      =[]      #Initialized the mass array. Will store a single tree history
 scale1     =[]      #Initialized the scale array. Will store a single tree history
@@ -310,8 +325,12 @@ mass_peak_FLAG_LIST  = []
 mass_peak_extreme_FLAG_LIST = []
 mass_peak_treeID_LIST = []
 
+temp_math = 0 
 prev_mass_val = 0.0
 MM_ratio = 0.3
+
+mergerratio = 0
+most_recent_MM_mergerrat = 0
 most_recent_MM_scale = 0
 most_recent_MM_scale_LIST = []
 
@@ -355,7 +374,7 @@ specified_tree_FOUND = 0
 specified_tree_bool = 1
 
 if specified_tree_bool == 1:
-	massbinminval = 10**10
+	massbinminval = 10**9
 	massbinmaxval = 10**15
 
 #pointless counter for interest. 
@@ -371,7 +390,7 @@ counter2 = 0
 counter3 = 0
 
 fileval1min=0
-fileval1max=1
+fileval1max=3
 
 #fileval2max=10
 #fileval3max=10
@@ -425,17 +444,42 @@ for counter1 in range(fileval1min, fileval1max):
 						print treeID
 						print specified_tree[0]
 						if specified_tree_bool == 1:
-							if int(treeID) == int(specified_tree[0]):
-								specified_tree_FOUND = 1
-								goodmassvalue = 1
-								print("=======================================")
-								print("WE FOUND THE SPECIFIED TREE!!!!!!")
-								print("=======================================")
-								print line 
+							print(" Length of SPECIFIED TREE ---- %d " % len(specified_tree))
+							if len(specified_tree) > 1:
+								if int(treeID) in specified_tree:
+									if specified_tree_FOUND != 2:
+										specified_tree_FOUND = 1
+									goodmassvalue = 1
+									print("=======================================")
+									print("WE FOUND A SPECIFIED TREE!!!!!!")
+									print("=======================================")
+									print line 
+									foundtreeindex = np.where(specified_tree == int(treeID) )[0]
+									specified_tree = np.delete(specified_tree, int(foundtreeindex) )
+
+									temp_math = (float(len(specified_tree))/orig_len_specified_tree)
+									print("TEMPMATH... %.4f" % temp_math)
+									if ( temp_math < (1. - specified_find_fraction)):
+										print("REACHED ENOUGH TREES FOUND TO BREAK OUT. specified_find_fraction.")
+										#specified_tree_FOUND == 2  #TO break out of the loop.  
+										sys.exit()
+								else:
+									print("Specified Tree NOT found.")
+									specified_tree_FOUND = 0
+									goodmassvalue = 0
 							else:
-								print("Specified Tree NOT found.")
-								specified_tree_FOUND = 0
-								goodmassvalue = 0
+								if int(treeID) == int(specified_tree[0]):
+									specified_tree_FOUND = 2
+									goodmassvalue = 1
+									print("=======================================")
+									print("WE FOUND THE LAST SPECIFIED TREE!!!!!!")
+									print("=======================================")
+									print line 
+								else:
+									print("Specified Tree NOT found.")
+									specified_tree_FOUND = 0
+									goodmassvalue = 0
+
 						initialmassval = float(splitline[2])
 						#Sets initial mass_peak as first value 
 						mass_peak = initialmassval
@@ -465,7 +509,7 @@ for counter1 in range(fileval1min, fileval1max):
 							#mass1, scale1 = plotdatatree(treeID, scale1, mass1)
 							#mass1, scale1, Vmaxarray1  =  plotMAtree(scale1, mass1, Vmaxarray1)
 							#if goodmassvalue ==1 :
-							if specified_tree_FOUND == 1:
+							if specified_tree_FOUND == 1 or specified_tree_FOUND == 2:
 								#Find slopes of mass histories. 
 								#beg_slopepoint, end_slopepoint, creation_scalepoint = generate_slope_points(scale1, mass1, Vmaxarray1, half_formationscale, plotfunc_count)
 								#beg_slopes.append(beg_slopepoint)
@@ -495,13 +539,17 @@ for counter1 in range(fileval1min, fileval1max):
 									mass_peak_extreme_FLAG_LIST.append(1)
 								else:
 									mass_peak_extreme_FLAG_LIST.append(0)
-
+								try:	
+									print("Last Major Merger: %.5f " % most_recent_MM_scale )
+									print(" MM Ratio:  %.4f "%  (  ))
+								except:
+									print("Couldnt print last major merger.")
 								#PLOT THE MASS ACCRETION HISTORIES. ALL ON TOP OF EACH OTHER FOR: MAtree2()
 								totaltrees += 1	
 								mass1, scale1, Vmaxarray1, plotfunc_count  =  plotMAtree2(scale1, mass1, Vmaxarray1, half_formationscale, treeID, plotfunc_count)
 								#print("PLot Function Count: %d" % plotfunc_count)
-								if specified_tree_FOUND == 1:
-									print("BREAKING LOOP SINCE SPECIFIED TREE HAS BEEN FOUND.")
+								if specified_tree_FOUND == 2:
+									print("BREAKING LOOP SINCE ALL SPECIFIED TREE HAS BEEN FOUND.")
 									sys.exit()
 									break
 							else:
@@ -552,12 +600,12 @@ for counter1 in range(fileval1min, fileval1max):
 						print("Skipping Tree... ")
 						continue
 
-
-					if ((scaleID != 1.000) and ((prev_mass_val - massval )/massval) >= MM_ratio ):
+					mergerratio = (prev_mass_val - massval )/massval
+					if ((scaleID != 1.000) and (mergerratio >= MM_ratio) ):
 						if scaleID > most_recent_MM_scale:
 							#print("Found Most Recent Merger.")
 							most_recent_MM_scale = scaleID 
-						
+							most_recent_MM_mergerrat = mergerratio
 					prev_mass_val = massval 
 
 
