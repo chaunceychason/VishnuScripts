@@ -13,12 +13,11 @@ from matplotlib.ticker import FormatStrFormatter
 """
 Program Notes:
 
-This code is GREAT! Version v.1_4 will make a few plots.
+This code is GOOD! Version v.1_3 makes one plot.
 
-* a colorful 2D histogram showing mass accretion history vs scale factors
+In v1.4 i would like to expand to plot multiple until done. 
 
-* a median and 65th and 35th percentiles. Also plots the points of Mass_peak. 
-
+For another code, median plotter: notes. 
 *THIS ADDS the functionality from v.1_3 so that it shows:
 	-halos that have M/Mpeak<0.9 and one version for halos with M/Mpeak>0.9
 
@@ -28,7 +27,6 @@ This code is GREAT! Version v.1_4 will make a few plots.
  	 -and aestetically: emove the top label and make the axis labels much larger 
  	  so they can be seen at the back of the room. 
 """
-
 
 #FUNCTIONS
 #-------------------------------------
@@ -63,16 +61,16 @@ def plotMAtree( scale1, mass1, Vmaxarray):
 	clearVmax  = []
 	return clearmass, clearscale, clearVmax
 
-def plotMAtree2( scale1, mass1, Vmaxarray, half_formationscale, plotfunc_count):
+def plotMAtree2( scale1, mass1, Vmaxarray, half_formationscale, treeID, plotfunc_count):
 	#print("Entered Plot Function")
-	plot_title="Mass Accretion History Tree "   #Can code the number in with treemax
+	plot_title="Mass Accretion History Tree: " + str(treeID)   #Can code the number in with treemax
 	x_axis="scale time"
 	y_axis="total mass"
-	figure_name=os.path.expanduser('~/Mar11TOTALMassAccretionfigure' +'.png')
+	figure_name=os.path.expanduser('~/Mar31MassAccretionfigureSpecific'+ str(treeID) +'.png')
 	#Choose which type of plot you would like: Commented out.
 	
 	#plt.hist2d(scale1, mass1, (100, 100), cmap=plt.cm.jet)
-
+	plt.figure("MAtree")
 	plt.plot(scale1, mass1, linestyle="", marker="o", markersize=3)
 	#plt.plot(scale1, Vmaxarray, linestyle="-", marker="o")
 	
@@ -83,12 +81,12 @@ def plotMAtree2( scale1, mass1, Vmaxarray, half_formationscale, plotfunc_count):
 	plt.ylabel(y_axis)
 	#plt.yscale("log")
 
-	#plt.savefig(figure_name)
-	#print("Saving plot: %s" % figure_name)
+	plt.savefig(figure_name)
+	print("Saving plot: %s" % figure_name)
 	#print
 	#In order to Plot only a single tree on a plot must clear lists before loop. 
 	#Comment out to over plot curves.			
-	#plt.clf()
+	plt.clf()
 
 	clearmass  = []
 	clearscale = []
@@ -96,23 +94,95 @@ def plotMAtree2( scale1, mass1, Vmaxarray, half_formationscale, plotfunc_count):
 	plotfunc_count += 1
 	return clearmass, clearscale, clearVmax, plotfunc_count
 
+
+def plotXYZ( xpos, ypos, zpos, marr, scale1, mass1, xmin, xmax, ymin, ymax, treename, scaletime):
+	#print("Entered Plot Function")
+	
+	plot_title="Mass Assembly History: " + str(scaletime)   #Can code the number in with treemax
+	x_axis="x"
+	y_axis="y"
+	figure_name=os.path.expanduser('/scratch/chasonnscr/temp/Mar31MassAccretionfigureSpecific'+ str(treeID) + '_' + str(scaletime) +'.png')
+	
+	if scaletime > 0.7 and (len(xpos)<2):
+		print("Skipped due to high scale.")
+		clearmass  = []
+		clearscale = []
+		clearVmax  = []
+		clearother = []
+		#plotfunc_count += 1
+		return clearmass, clearscale, clearVmax, clearother
+
+	#Choose which type of plot you would like: Commented out.
+	
+	#--------------------
+	amount_val = 0.75
+	if ((10*scaletime) % 1 == 0.0):
+		print("RESETTING THE X<Y<Z< value.")
+		ymin = ypos - amount_val
+		ymax = ypos + amount_val
+		xmin = xpos - amount_val
+		xmax = xpos + amount_val
+
+	sizes_array = np.array(marr)
+	sizes_array = np.log10(sizes_array)**2
+
+	plt.figure("XYZplot")	
+	plt.subplots(2, figsize=(10,20))
+	plt.subplot(211)
+
+	plt.ylim([ymin, ymax])
+	plt.xlim([xmin, xmax])
+
+	plt.scatter(xpos, ypos, s=sizes_array)
+	plt.title(plot_title)
+	plt.xlabel(x_axis)
+	plt.ylabel(y_axis)
+
+	#---------------------
+
+	plt.subplot(212)
+	#plt.title()
+
+	plt.xlim([0, 1])
+	plt.scatter(scale1, mass1)
+
+
+	plt.savefig(figure_name)
+	print("Saving plot: %s" % figure_name)
+	
+	
+
+	#Comment out to over plot curves.			
+	plt.clf()
+
+	clearmass  = []
+	clearscale = []
+	clearVmax  = []
+	clearother = []
+	#plotfunc_count += 1
+	return clearmass, clearscale, clearVmax, clearother
+
 def plotMAtreeFINALhist( scale1, mass1, Vmaxarray, plotfunc_count):
 	print("Entered Final Hist Plot Function")
 	plot_title="Mass Accretion History Histogram"   #Can code the number in with treemax
 	x_axis="scale time"
 	y_axis="total mass"
-	figure_name=os.path.expanduser('~/Mar12HISTMassAccrfig_num' + str(plotfunc_count) +'.png')
-	plotfunc_count += 1
+	figure_name=os.path.expanduser('~/Mar11HISTMassAccretionfigure' +'.png')
 	#Choose which type of plot you would like: Commented out.
 	#yminv = 1000*2.57*10**8.
 	yminv = 0 
-	ymaxv = 4000*2.57*10**8.
+	ymaxv = 2000*2.57*10**8.
 	
 	#The following code is to make the histogram appear much neater by eliminating values which are greatly out of range.
 
 	plt.hist2d(scale1, mass1, (100, 500), cmap=plt.cm.jet, norm=matplotlib.colors.LogNorm() )
 	plt.ylim([yminv, ymaxv])
 
+	#plt.plot(scale1, mass1, linestyle="", marker="o", markersize=3, edgecolor='none')
+	#plt.plot(scale1, Vmaxarray, linestyle="-", marker="o")
+	
+
+	#plt.scatter(scale1, mass1, label="first tree")
 	plt.title(plot_title)
 	plt.xlabel(x_axis)
 	plt.ylabel(y_axis)
@@ -120,6 +190,7 @@ def plotMAtreeFINALhist( scale1, mass1, Vmaxarray, plotfunc_count):
 
 	plt.savefig(figure_name)
 	print("Saving plot: %s" % figure_name)
+	
 	
 	#In order to Plot only a single tree on a plot must clear lists before loop. 
 	#Comment out to over plot curves.			
@@ -130,7 +201,7 @@ def plotMAtreeFINALhist( scale1, mass1, Vmaxarray, plotfunc_count):
 	clearVmax  = []
 	plotfunc_count += 1
 	#return clearmass, clearscale, clearVmax, plotfunc_count
-	return plotfunc_count
+	return
 
 def plotMAslopes(HF_scales, beg_slopes, end_slopes, creation_scales, plotfunc_count):
 	print("Entered Slopes Plot Function")
@@ -260,8 +331,6 @@ fullfilepath=filedir+file_name
 print fullfilepath
 print
 
-
-
 """
 NO. longer. accurate. January 15th. -----
 SAMPLE DATA LINE NUMBERS (grep -n), SCALE FACTOR, ID,  MASS.
@@ -276,6 +345,14 @@ SAMPLE DATA LINE NUMBERS (grep -n), SCALE FACTOR, ID,  MASS.
 229150:1.00000 9461448909 3.14700e+11
 243585:1.00000 9461448935 2.82800e+11
 """
+#specified_tree = [ 9461448875 ]
+#specified_tree = [ 9461448909 ]
+#specified_tree = [ 9461448171 ]
+#specified_tree = [ 9461485245 ]
+#specified_tree = [ 9461448043 ]
+specified_tree = [ 9461592449 ]
+#specified_trees = [9461592449, 9462511558, 9462512272, 9462513190]
+
 
 mass1      =[]      #Initialized the mass array. Will store a single tree history
 scale1     =[]      #Initialized the scale array. Will store a single tree history
@@ -286,15 +363,20 @@ massTOT      = []
 scaleTOT     = []
 VmaxarrayTOT = []
 
+
+xarray = []
+yarray = []
+zarray = []
+marray = []
+
+xval = 0
+yval = 0
+zval = 0
+
 beg_slopes = []
 end_slopes = []
 HF_scales  = []
 creation_scales = []
-
-#For plotting
-size_font = 20
-matplotlib.rcParams.update({'font.size': 18})
-
 
 mass_peak = 0
 mass_peak_scale = 0
@@ -345,7 +427,19 @@ massbinmaxval = 10**11.5
 particlemass = 2.57*(10**8.)
 #massbinminval = 1000*particlemass   #Sets minimum mass. Should eventually be set dependpent on particle number. 
 #massbinmaxval = 2000*particlemass   
-goodmassvalue = 1
+xmin = 0
+xmax = 0
+ymin = 0
+ymax = 0
+
+goodmassvalue = 0
+specified_tree_FOUND = 0 
+#Set to 0 to NOT use specified_tree
+specified_tree_bool = 1
+
+if specified_tree_bool == 1:
+	massbinminval = 10**10
+	massbinmaxval = 10**15
 
 #pointless counter for interest. 
 massdifferencescount = 0
@@ -359,17 +453,18 @@ counter1 = 0
 counter2 = 0
 counter3 = 0
 
+counter_temp_wtf = 0
+
 fileval1min=0
-fileval1max=2
+fileval1max=1
 
 #fileval2max=10
 #fileval3max=10
-fileval2max=5
-fileval3max=5
+fileval2max=10
+fileval3max=10
 
 print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
 print("WARNING NOT USING ALL FILES.")
-
 
 for counter1 in range(fileval1min, fileval1max):
 	print("Counter1 = %d " % counter1)
@@ -402,6 +497,49 @@ for counter1 in range(fileval1min, fileval1max):
 						print("Max Iterations Reached.")
 						pass
 
+					splitline = line.split()  #Divide the non-hashed data into splitline.
+					    
+					if line.startswith("1.00000"):   #Thus meaning a new halo at scale 1.0
+						#print("Line begins with 1.0000")
+						
+						"""
+						BEGIN STORING NEW TREE INFORMATION.
+						"""
+						
+						treeID = splitline[1]    #If scale1.0, Assign halo ID as treeID name.
+						print treeID
+						print specified_tree[0]
+						if specified_tree_bool == 1:
+							if int(treeID) == int(specified_tree[0]):
+								specified_tree_FOUND = 1
+								goodmassvalue = 1
+								print("=======================================")
+								print("WE FOUND THE SPECIFIED TREE!!!!!!")
+								print("=======================================")
+								print line 
+							else:
+								print("Specified Tree NOT found.")
+								specified_tree_FOUND = 0
+								goodmassvalue = 0
+						initialmassval = float(splitline[2])
+						#Sets initial mass_peak as first value 
+						mass_peak = initialmassval
+						most_recent_MM_scale = 0.0 
+						#Checks whether the mass is in the specified bin. 
+						if(massbinminval < initialmassval < massbinmaxval):
+							print("Mass is in range.")
+							print line
+							stored_counter += 1
+							#lsgoodmassvalue = 1  #A value of one will allow the accretion history to be made
+						else:
+							#print("Bad Mass. %.2e " % initialmassval)
+							print("BAD MASS DETECTED! - should set goodmassvalue to 0.")
+							unstored_counter += 1
+							
+							#goodmassvalue = 0  #A value of zero will skip the accretion history.
+							#continue
+
+
 					#Determines what to do when encountering a New Tree as determined by HASH.
 					if line.startswith("1.00000"):
 						#Sets Good Mass Value to show a proper tree has been found. 
@@ -413,7 +551,8 @@ for counter1 in range(fileval1min, fileval1max):
 							#pass	
 							#mass1, scale1 = plotdatatree(treeID, scale1, mass1)
 							#mass1, scale1, Vmaxarray1  =  plotMAtree(scale1, mass1, Vmaxarray1)
-							if goodmassvalue ==1:
+							#if goodmassvalue ==1 :
+							if specified_tree_FOUND == 1:
 								#Find slopes of mass histories. 
 								#beg_slopepoint, end_slopepoint, creation_scalepoint = generate_slope_points(scale1, mass1, Vmaxarray1, half_formationscale, plotfunc_count)
 								#beg_slopes.append(beg_slopepoint)
@@ -421,7 +560,7 @@ for counter1 in range(fileval1min, fileval1max):
 								#creation_scales.append(creation_scalepoint)
 								#HF_scales.append(half_formationscale)
 								"""
-								#Store The Statistical Values From the Current Tree before Deleting..
+								# Store The Statistical Values From the Current Tree before Deleting..
 								"""
 								mass_peak_LIST.append(mass_peak)
 								mass_peak_treeID_LIST.append(mass_peak_treeID)
@@ -446,41 +585,30 @@ for counter1 in range(fileval1min, fileval1max):
 
 								#PLOT THE MASS ACCRETION HISTORIES. ALL ON TOP OF EACH OTHER FOR: MAtree2()
 								totaltrees += 1	
-								mass1, scale1, Vmaxarray1, plotfunc_count  =  plotMAtree2(scale1, mass1, Vmaxarray1, half_formationscale, plotfunc_count)
+								mass1, scale1, Vmaxarray1, plotfunc_count  =  plotMAtree2(scale1, mass1, Vmaxarray1, half_formationscale, treeID, plotfunc_count)
 								#print("PLot Function Count: %d" % plotfunc_count)
+								if specified_tree_FOUND == 1:
+									if counter_temp_wtf > 0:
+										print("BREAKING LOOP SINCE SPECIFIED TREE HAS BEEN FOUND.")
+										sys.exit()
+										break
+									else:
+										counter_temp_wtf += 1
 							else:
 								pass
-								#mass1  = []
-								#scale1 = []
-								#Vmaxarray1 = []
+								del mass1[:]
+								del scale1[:]
+								del Vmaxarray1[:]
 
 							scalecount = 0 
-					if  ((goodmassvalue == 0) and not line.startswith("1.0000")) :
+					
+					#if  ((goodmassvalue == 0) and not line.startswith("1.0000")) :
+					if  (goodmassvalue == 0) :
 						continue		
 
-					splitline = line.split()  #Divide the non-hashed data into splitline.
-					    
-					if line.startswith("1.00000"):   #Thus meaning a new halo at scale 1.0
-						#print("Line begins with 1.0000")
-						
-						"""
-						BEGIN STORING NEW TREE INFORMATION.
-						"""
-						treeID = splitline[1]    #If scale1.0, Assign halo ID as treeID name.
-						initialmassval = float(splitline[2])
-						#Sets initial mass_peak as first value 
-						mass_peak = initialmassval
-						most_recent_MM_scale = 0.0 
-						#Checks whether the mass is in the specified bin. 
-						if(massbinminval < initialmassval < massbinmaxval):
-							print("Mass is in range.")
-							stored_counter += 1
-							goodmassvalue = 1  #A value of one will allow the accretion history to be made
-						else:
-							#print("Bad Mass. %.2e " % initialmassval)
-							unstored_counter += 1
-							goodmassvalue = 0  #A value of zero will skip the accretion history.
-							continue
+					"""
+					FORMER PLACEMENT OF: 1.0000 thing. 
+					"""
 
 					scaleID = float(splitline[0])           #Sets scale ID
 					haloID  = float(splitline[1])		#Sets halo ID. If 1.00 scale then same as treeID. 
@@ -488,6 +616,10 @@ for counter1 in range(fileval1min, fileval1max):
 					Vmaxval = float(splitline[7])
 					Pidval  = float(splitline[8])
 					
+					xval = float(splitline[4])
+					yval = float(splitline[5])
+					zval = float(splitline[6])
+
 					'''
 					-----------------------------------
 					FIND THE HALF MASS FORMATION time
@@ -509,13 +641,21 @@ for counter1 in range(fileval1min, fileval1max):
 					'''
 					DISREGARD SUB-HALOS 
 					'''
+					#Set x and y max and min for plotting. 
+					if scaleID == 1.000 and goodmassvalue == 1:
+						xmin = xval - 2
+						xmax = xval + 2
+						ymin = yval - 2
+						ymax = yval + 2
+
+					"""
 					if scaleID == 1.000 and Pidval != -1:
 						#CURRENTLY DOES NOT WORK. UGH.
 						goodmassvalue == 0
 						print("scaleID=1.0 BUT Pid is not -1. Sub Halo Detected at Tree.")
 						print("Skipping Tree... ")
 						continue
-
+					"""
 
 					if ((scaleID != 1.000) and ((prev_mass_val - massval )/massval) >= MM_ratio ):
 						if scaleID > most_recent_MM_scale:
@@ -530,9 +670,15 @@ for counter1 in range(fileval1min, fileval1max):
 					'''
 					HANDLE REDUNDANT SCALE TIMES 
 					'''
-					if scaleID == scale_previous:  #Only wish to plot one point per scale length!
+					if scaleID == scale_previous and goodmassvalue == 1:  #Only wish to plot one point per scale length!
 						#Below Checks to see if masses at same scale are less. 
 						massdiffval = mass_previous - massval
+						#Append positions for plotting. 
+						print("HEY WE ARE APPENDING STUFF... this should be the halo. #$%^&*$%^&*(#$%^&*(")
+						xarray.append( xval )
+						yarray.append( yval )
+						zarray.append( zval )
+						marray.append( massval )
 						if massdiffval > 0:
 							#print("massdiffval at (%d) scale %.5f is GREATER than zero: %.2E  as expected! Moving on..." % (scalecount, scaleID, massdiffval))
 							continue
@@ -549,16 +695,24 @@ for counter1 in range(fileval1min, fileval1max):
 						else:
 							print("none executed. Check exemptions!")
 							pass
-					else:
+					elif goodmassvalue == 1:
 						scalecount += 1
 						
 						'''
 						DEFINE PRIMARY DATA ARRAYS
 						'''
-						haloIDarray.append(treeID)
+						
+						haloIDarray.append(haloID)
 						scale1.append(scaleID)
 						mass1.append(massval)
 						Vmaxarray1.append(Vmaxval)
+
+						xarray, yarray, zarray, marray = plotXYZ(xarray, yarray, zarray, marray, scale1, mass1, xmin, xmax, ymin, ymax, treeID, scaleID)
+						xarray.append( xval )
+						yarray.append( yval )
+						zarray.append( zval )
+						marray.append( massval )
+
 
 						scaleTOT.append(scaleID)
 						massTOT.append(massval)
@@ -566,6 +720,8 @@ for counter1 in range(fileval1min, fileval1max):
 
 						scale_previous = scaleID
 						mass_previous  = massval
+					else:
+						print("GOODMASSVLUE NOT 1. bottom of loop. ")
 					
 
 					icount += 1           #Keep track of loop number. icount plus 1. 		
@@ -589,15 +745,15 @@ print("Saving plot: %s" % figure_name)
 plt.clf()
 
 #plotMAslopes(HF_scales, beg_slopes, end_slopes, creation_scales, plotfunc_count)
-print("Making Total Mass Accretion Figure...")
-plotfunc_count = plotMAtreeFINALhist(scaleTOT, massTOT, VmaxarrayTOT, plotfunc_count)
-plt.clf()
+
+#plotMAtreeFINALhist(scaleTOT, massTOT, VmaxarrayTOT, plotfunc_count)
+#plt.clf()
 
 
 """
 PARSE RESULTS TO DETERMINE MASSS DISTRIBUTION AT SCALE. 
 
-"""
+
 print("BEGIN PARSE RESULTS:  ....")
 print("-----------------------------------------")
 print("Length of scale1: %d " % len(scale1))
@@ -649,20 +805,19 @@ else:
 print("Computing statistics about the mass accretion histories by scales. ")
 
 """
-SORTS SCALES AND FINDS MEDIAN MASS ACCRETION HISTORY AND STATS. 
+#SORTS SCALES AND FINDS MEDIAN MASS ACCRETION HISTORY AND STATS. 
 """
 p25bool = 0
 p50bool = 0
 p75bool = 0
 #Define numpy array np_MassTOT so it can recieve multiple indexes. 
 np_MassTOT = np.array(massTOT)
-np_scaleTOT = np.array(scaleTOT)
 print len(np_MassTOT)
 for idx1, scale_ticker in enumerate(scale_ListSorted):
-	np_scale_idxs = np.where( np_scaleTOT == scale_ticker )[0]
-	#print np_scale_idxs
+	np_scale_idxs = np.where( scaleTOT == scale_ticker )[0]
+	print np_scale_idxs
 	temp_scale_masses = np_MassTOT[np_scale_idxs]
-	#print temp_scale_masses
+	print temp_scale_masses
 	p65_scales.append( np.percentile(temp_scale_masses, 65.  ) )
 	p35_scales.append( np.percentile(temp_scale_masses, 35. ) )
 	p95_scales.append( np.percentile(temp_scale_masses, 95.  ) )
@@ -691,7 +846,7 @@ print("Length of p65_scales:  %d " % len(p65_scales))
 #PLOT THE STATS 
 plt.scatter( scale_ListSorted, p95_scales,     c='g' , s=3, alpha=0.5 , lw = 0 , label = '95th % ')
 plt.scatter( scale_ListSorted, p65_scales,     c='b' , s=3, alpha=0.75, lw = 0 , label = '65th % ')
-plt.scatter( scale_ListSorted, median_scales , c='r' , s=7,             lw = 0,  label ='median' )
+plt.scatter( scale_ListSorted, median_scales , c='r' , s=7,             lw = 0,  label='median' )
 plt.scatter( scale_ListSorted, p35_scales ,    c='b' , s=3, alpha=0.75, lw = 0 , label = '35th % ')
 plt.scatter( scale_ListSorted, p05_scales ,    c='g' , s=3, alpha=0.5 , lw = 0 , label = ' 5th % ')
 
@@ -711,7 +866,7 @@ super_interesting_peaks_idxs = np.where(mass_peak_extreme_FLAG_npLIST==1)[0]
 #print mass_peak_FLAG_npLIST
 #print 
 
-print super_interesting_peaks_idxs
+print interesting_peaks_idxs
 
 np_halos_IDs  = np.array(haloIDarray)
 mass_peak_treeID_npLIST = np.array(mass_peak_treeID_LIST)
@@ -738,7 +893,7 @@ with open(super_interesting_filename , 'w') as the_file:
 		the_file.write(element)
 		the_file.write('\n')
 
-print("Doing other stuff by scales. ")
+print("Computing statistics about the mass accretion histories by scales. ")
 
 plt.title("Mass Accretion Histories")
 plt.xlabel("Scale Time")
@@ -751,211 +906,6 @@ figure_name=os.path.expanduser('~/Mar11MAmedianNew' +'.png')
 plt.savefig(figure_name)
 print("Saving plot: %s" % figure_name)
 plt.clf()
-
-
 """
-========================================
-MAKE HISTOGRAM FOR M_FINAL/M_PEAK < 0.9 LT
-========================================
-"""
-#print haloIDarray
-np_haloIDarray = np.array(haloIDarray)
-LT9_halos_masses = np.array([])
-LT9_halos_scales = np.array([])
-np_scaleTOT = np.array(scaleTOT)
-for elem in interesting_halos_IDs:
-	data_idx = np.where(np_haloIDarray == elem)[0]
-	print elem
-	#print haloIDarray[7]
-	#print data_idx
-	mass_data_list = np_MassTOT[data_idx]
-	scale_data_list = np_scaleTOT[data_idx]
-	#print len(mass_data_list)
-	LT9_halos_masses = np.append(LT9_halos_masses, mass_data_list )
-	LT9_halos_scales = np.append(LT9_halos_scales, scale_data_list )
-
-
-	#LT9_halos_masses.append( mass_data_list )
-	#LT9_halos_scales.append( scale_data_list )
-print("Finished with data M_final/M_peak < 0.9... plotting ")
-
-#plot_title="Mass Accretion History Histogram"   #Can code the number in with treemax
-x_axis="scale factor"
-y_axis="Halo mass"
-figure_name=os.path.expanduser('~/Mar12HISTMassAccrfigLTp9_num' + str(plotfunc_count) +'.png')
-plotfunc_count += 1
-#Choose which type of plot you would like: Commented out.
-#yminv = 1000*2.57*10**8.
-yminv = 0 
-ymaxv = 2500*2.57*10**8.
-#The following code is to make the histogram appear much neater by eliminating values which are greatly out of range.
-plt.hist2d(LT9_halos_scales, LT9_halos_masses, (400, 700), cmap=plt.cm.jet, norm=matplotlib.colors.LogNorm() )
-plt.ylim([yminv, ymaxv])
-
-#plt.title(plot_title)
-plt.xlabel(x_axis, fontsize=size_font)
-plt.ylabel(y_axis, fontsize=size_font)
-#plt.yscale("log")
-
-plt.savefig(figure_name)
-print("Saving plot: %s" % figure_name)
-
-#In order to Plot only a single tree on a plot must clear lists before loop. 
-#Comment out to over plot curves.			
-plt.clf()
-
-
-"""
-plotfunc_count = plotMAtreeFINALhist(LT9_halos_scales, LT9_halos_masses, VmaxarrayTOT, plotfunc_count)
-plt.clf()
-"""
-
-"""
-========================================
-MAKE HISTOGRAM FOR M_FINAL/M_PEAK > 0.9 GT
-========================================
-"""
-#print haloIDarray
-#np_haloIDarray = np.array(haloIDarray)
-GT9_halos_masses = []
-GT9_halos_scales = []
-#np_scaleTOT = np.array(scaleTOT)
-#for elem in interesting_halos_IDs:
-previous_elem = -999
-skipbool = 0
-#Logic to plot halos which are not interesting. 
-for idx, elem in enumerate(np_haloIDarray):
-	if ((skipbool >= 1) and (previous_elem == elem)):
-		#To print out dots while skipping elements. 
-		"""
-		if skipbool < 15:
-			print ".",
-		else:
-			print "."
-			skipbool = 0 
-		"""
-		skipbool +=1
-		continue
-
-	if elem != previous_elem:
-		if elem in interesting_halos_IDs:
-			#print("skipping element...")
-			previous_elem = elem
-			skipbool = 1
-			continue
-		else:
-			#print("good value.")
-			skipbool=0
-
-	#do stuff. 
-	GT9_halos_masses.append( np_MassTOT[idx])
-	GT9_halos_scales.append( np_scaleTOT[idx])
-	previous_elem = elem
-
-	#LT9_halos_masses.append( mass_data_list )
-	#LT9_halos_scales.append( scale_data_list )
-print("Finished with data M_final/M_peak > 0.9... plotting ")
-
-#plot_title="Msass Accretion History Histogram"   #Can code the number in with treemax
-x_axis="scale factor"
-y_axis="Halo mass"
-figure_name=os.path.expanduser('~/Mar12HISTMassAccrfigGTp9_num' + str(plotfunc_count) +'.png')
-plotfunc_count += 1
-#Choose which type of plot you would like: Commented out.
-#yminv = 1000*2.57*10**8.
-yminv = 0 
-ymaxv = 2500*2.57*10**8.
-#The following code is to make the histogram appear much neater by eliminating values which are greatly out of range.
-plt.hist2d(GT9_halos_scales, GT9_halos_masses, (200, 500), cmap=plt.cm.jet, norm=matplotlib.colors.LogNorm() )
-plt.ylim([yminv, ymaxv])
-
-#plt.title(plot_title)
-plt.xlabel(x_axis, fontsize=size_font)
-plt.ylabel(y_axis, fontsize=size_font)
-#plt.yscale("log")
-
-plt.savefig(figure_name)
-print("Saving plot: %s" % figure_name)
-
-#In order to Plot only a single tree on a plot must clear lists before loop. 
-#Comment out to over plot curves.			
-plt.clf()
-
-"""
-plotfunc_count = plotMAtreeFINALhist(GT9_halos_scales, GT9_halos_masses, VmaxarrayTOT, plotfunc_count)
-plt.clf()
-"""
-
-"""
-========================================
-MAKE HISTOGRAM FOR M_FINAL/M_PEAK > 0.5 GT
-========================================
-"""
-#print haloIDarray
-#np_haloIDarray = np.array(haloIDarray)
-GT5_halos_masses = []
-GT5_halos_scales = []
-#np_scaleTOT = np.array(scaleTOT)
-#for elem in interesting_halos_IDs:
-previous_elem = -999
-skipbool = 0
-#Logic to plot halos which are not interesting. 
-for idx, elem in enumerate(np_haloIDarray):
-	if ((skipbool >= 1) and (previous_elem == elem)):
-		#To print out dots while skipping elements. 
-		"""
-		if skipbool < 15:
-			print ".",
-		else:
-			print "."
-			skipbool = 0 
-		"""
-		skipbool +=1
-		continue
-
-	if elem != previous_elem:
-		if elem in  super_interesting_halos_IDs:
-			#print("skipping element...")
-			previous_elem = elem
-			skipbool = 1
-			continue
-		else:
-			#print("good value.")
-			skipbool=0
-
-	#do stuff. 
-	GT5_halos_masses.append( np_MassTOT[idx])
-	GT5_halos_scales.append( np_scaleTOT[idx])
-	previous_elem = elem
-
-print("Finished with data M_final/M_peak > 0.5... plotting ")
-
-#plot_title="Msass Accretion History Histogram"   #Can code the number in with treemax
-x_axis="scale factor"
-y_axis="Halo mass"
-figure_name=os.path.expanduser('~/Mar12HISTMassAccrfigGTp5_num' + str(plotfunc_count) +'.png')
-plotfunc_count += 1
-#Choose which type of plot you would like: Commented out.
-#yminv = 1000*2.57*10**8.
-yminv = 0 
-ymaxv = 2500*2.57*10**8.
-#The following code is to make the histogram appear much neater by eliminating values which are greatly out of range.
-plt.hist2d(GT5_halos_scales, GT5_halos_masses, (200, 400), cmap=plt.cm.jet, norm=matplotlib.colors.LogNorm() )
-plt.ylim([yminv, ymaxv])
-
-#plt.title(plot_title)
-plt.xlabel(x_axis, fontsize=size_font)
-plt.ylabel(y_axis, fontsize=size_font)
-#plt.yscale("log")
-
-plt.savefig(figure_name)
-print("Saving plot: %s" % figure_name)
-
-#In order to Plot only a single tree on a plot must clear lists before loop. 
-#Comment out to over plot curves.			
-plt.clf()
-
-
-
 
 print("Program Completed. ")

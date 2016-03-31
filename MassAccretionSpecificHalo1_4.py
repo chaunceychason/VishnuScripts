@@ -296,12 +296,12 @@ specified_tree = np.array([ 9461447027,
 9461579639,
 9461592903,
 9461591850])
+
 '''
+
 specified_tree = np.array([9461474193,
 9462501008,
-9461592449,
 9462511558,
-9462512272,
 9462513190 ])
 
 
@@ -471,7 +471,7 @@ for counter1 in range(fileval1min, fileval1max):
 									if ( temp_math < (1. - specified_find_fraction)):
 										print("REACHED ENOUGH TREES FOUND TO BREAK OUT. specified_find_fraction.")
 										#specified_tree_FOUND == 2  #TO break out of the loop.  
-										sys.exit()
+										#sys.exit()
 								else:
 									print("Specified Tree NOT found.")
 									specified_tree_FOUND = 0

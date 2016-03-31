@@ -309,7 +309,14 @@ mass_peak_treeID_LIST = []
 prev_mass_val = 0.0
 MM_ratio = 0.3
 most_recent_MM_scale = 0
+most_recent_MM_diff = 0
 most_recent_MM_scale_LIST = []
+most_recent_MM_scale_HALOID = []
+most_recent_MM_scale_initMASS = []
+most_recent_MM_scale_MMMASS = []
+most_recent_MM_scale_MassDiff = []
+
+
 
 hashtrees=0   #The number of hashes found in file. Set counter to 0
 scale1trees=0 # should be exactly the same as hashtrees
@@ -346,6 +353,10 @@ particlemass = 2.57*(10**8.)
 #massbinminval = 1000*particlemass   #Sets minimum mass. Should eventually be set dependpent on particle number. 
 #massbinmaxval = 2000*particlemass   
 goodmassvalue = 1
+sub_halo_found_bool = 0 #0 for sub_halo not detected. 1 for sub halo detected. 
+print("Sub_halo_found_bool set to %d" %sub_halo_found_bool)
+
+MMfound = 0
 
 #pointless counter for interest. 
 massdifferencescount = 0
@@ -364,11 +375,11 @@ fileval1max=2
 
 #fileval2max=10
 #fileval3max=10
-fileval2max=5
-fileval3max=5
+fileval2max=6
+fileval3max=10
 
 print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-print("WARNING NOT USING ALL FILES.")
+print("WARNING: maybe NOT USING ALL FILES.")
 
 
 for counter1 in range(fileval1min, fileval1max):
@@ -389,6 +400,9 @@ for counter1 in range(fileval1min, fileval1max):
 				print("FILE DOES NOT EXIST. Continuing.")
 				continue
 
+			"""
+			OPEN EACH INDIV DATA FILE, TREE, MASSID, by Scale. 
+			"""
 			with open(datafilename) as fp:
 				for line in fp:
 					#print line
@@ -420,34 +434,43 @@ for counter1 in range(fileval1min, fileval1max):
 								#end_slopes.append(end_slopepoint)
 								#creation_scales.append(creation_scalepoint)
 								#HF_scales.append(half_formationscale)
-								"""
-								#Store The Statistical Values From the Current Tree before Deleting..
-								"""
-								mass_peak_LIST.append(mass_peak)
-								mass_peak_treeID_LIST.append(mass_peak_treeID)
-								mass_init_LIST.append(initialmassval)
-								mass_peak_scale_LIST.append(mass_peak_scale)
-								most_recent_MM_scale_LIST.append( most_recent_MM_scale)
+								if sub_halo_found_bool == 0:
+									"""
+									#Store The Statistical Values From the Current Tree before Deleting..
+									"""
+									mass_peak_LIST.append(mass_peak)
+									mass_peak_treeID_LIST.append(mass_peak_treeID)
+									mass_init_LIST.append(initialmassval)
+									mass_peak_scale_LIST.append(mass_peak_scale)
+									#most_recent_MM_scale_LIST.append( most_recent_MM_scale)
 
-								# for easy reference. 
-								if initialmassval/mass_peak <= mass_peak_fraction:
-									print("INTERESTING TREE! M_final/M_peak < 0.9 !!   ")
-									print treeID 
-									mass_peak_FLAG_LIST.append(1)
+									# for easy reference. 
+									if initialmassval/mass_peak <= mass_peak_fraction:
+										print("INTERESTING TREE! M_final/M_peak < 0.9 !!   ")
+										print treeID 
+										mass_peak_FLAG_LIST.append(1)
+									else:
+										mass_peak_FLAG_LIST.append(0)
+
+									if initialmassval/mass_peak <= mass_peak_extreme_fraction:
+										print("SUPER INTERESTING TREE! M_final/M_peak < 0.5 !!   ")
+										print treeID
+										mass_peak_extreme_FLAG_LIST.append(1)
+									else:
+										mass_peak_extreme_FLAG_LIST.append(0)
+
+									most_recent_MM_scale_initMASS.append(initialmassval)
+									most_recent_MM_scale_MMMASS.append(most_recent_MM_mass)
+									most_recent_MM_scale_HALOID.append(treeID)
+									most_recent_MM_scale_MassDiff.append(most_recent_MM_diff)
+									most_recent_MM_scale_LIST.append( most_recent_MM_scale)
+									#PLOT THE MASS ACCRETION HISTORIES. ALL ON TOP OF EACH OTHER FOR: MAtree2()
+									totaltrees += 1	
+									mass1, scale1, Vmaxarray1, plotfunc_count  =  plotMAtree2(scale1, mass1, Vmaxarray1, half_formationscale, plotfunc_count)
+									MMfound = 0
+									#print("PLot Function Count: %d" % plotfunc_count)
 								else:
-									mass_peak_FLAG_LIST.append(0)
-
-								if initialmassval/mass_peak <= mass_peak_extreme_fraction:
-									print("SUPER INTERESTING TREE! M_final/M_peak < 0.5 !!   ")
-									print treeID
-									mass_peak_extreme_FLAG_LIST.append(1)
-								else:
-									mass_peak_extreme_FLAG_LIST.append(0)
-
-								#PLOT THE MASS ACCRETION HISTORIES. ALL ON TOP OF EACH OTHER FOR: MAtree2()
-								totaltrees += 1	
-								mass1, scale1, Vmaxarray1, plotfunc_count  =  plotMAtree2(scale1, mass1, Vmaxarray1, half_formationscale, plotfunc_count)
-								#print("PLot Function Count: %d" % plotfunc_count)
+									print("** ** ** ** **   SKIPPED B/C SUBHALO.   ** ** ** ** ** ** ")
 							else:
 								pass
 								#mass1  = []
@@ -473,7 +496,7 @@ for counter1 in range(fileval1min, fileval1max):
 						most_recent_MM_scale = 0.0 
 						#Checks whether the mass is in the specified bin. 
 						if(massbinminval < initialmassval < massbinmaxval):
-							print("Mass is in range.")
+							#print("Mass is in range.")
 							stored_counter += 1
 							goodmassvalue = 1  #A value of one will allow the accretion history to be made
 						else:
@@ -506,22 +529,43 @@ for counter1 in range(fileval1min, fileval1max):
 						mass_peak_scale = scaleID 
 						mass_peak_treeID = treeID 
 
+					#not sure if this would include onlyt the correct points. 
+					
 					'''
 					DISREGARD SUB-HALOS 
 					'''
 					if scaleID == 1.000 and Pidval != -1:
 						#CURRENTLY DOES NOT WORK. UGH.
-						goodmassvalue == 0
+						goodmassvalue = 0
+						sub_halo_found_bool = 1 
 						print("scaleID=1.0 BUT Pid is not -1. Sub Halo Detected at Tree.")
 						print("Skipping Tree... ")
 						continue
+					elif scaleID == 1.000 and Pidval == -1:
+						goodmassvalue = 1
+						sub_halo_found_bool = 0
 
-
-					if ((scaleID != 1.000) and ((prev_mass_val - massval )/massval) >= MM_ratio ):
+					"""
+					FIND THE MAJOR MERGERS initial att.
+					"""
+					if ((scaleID != 1.000) and (((prev_mass_val - massval )/massval) >= MM_ratio) and (MMfound ==0) ):
 						if scaleID > most_recent_MM_scale:
 							#print("Found Most Recent Merger.")
 							most_recent_MM_scale = scaleID 
-						
+							#most_recent_MM_mass  = massval
+							most_recent_MM_mass  = prev_mass_val
+							most_recent_MM_diff = prev_mass_val-massval
+							MMfound = 1
+					
+					'''
+					FIND THE MM SCALES.
+					
+					if ( (scaleID != 1.000) and (massval < (majormergerratio*mass_previous)) and MMfound == 0):
+						print("major merger detected. Scale: %f" % scaleID)
+						MM_array_treeID_mostrecentMM = np.array([treeID, scaleID,  ])
+						MMfound = 1
+					'''
+
 					prev_mass_val = massval 
 
 
@@ -555,15 +599,17 @@ for counter1 in range(fileval1min, fileval1max):
 						'''
 						DEFINE PRIMARY DATA ARRAYS
 						'''
-						haloIDarray.append(treeID)
-						scale1.append(scaleID)
-						mass1.append(massval)
-						Vmaxarray1.append(Vmaxval)
+						if sub_halo_found_bool == 0:
+							haloIDarray.append(treeID)
+							scale1.append(scaleID)
+							mass1.append(massval)
+							Vmaxarray1.append(Vmaxval)
 
-						scaleTOT.append(scaleID)
-						massTOT.append(massval)
-						VmaxarrayTOT.append(Vmaxval)
-
+							scaleTOT.append(scaleID)
+							massTOT.append(massval)
+							VmaxarrayTOT.append(Vmaxval)
+						else:
+							print("skipped append due to sub halo being found. bugger.")
 						scale_previous = scaleID
 						mass_previous  = massval
 					
@@ -583,7 +629,7 @@ for counter1 in range(fileval1min, fileval1max):
 #mass1, scale1 = plotdatatree(treeID, scale1, mass1)
 #mass1, scale1  = plotMAtree( scaleTOT, massTOT, VmaxarrayTOT)
 
-figure_name=os.path.expanduser('~/Mar11MAhistorytree' +'.png')
+figure_name=os.path.expanduser('~/Mar29MAhistorytree' +'.png')
 plt.savefig(figure_name)
 print("Saving plot: %s" % figure_name)
 plt.clf()
@@ -592,7 +638,6 @@ plt.clf()
 print("Making Total Mass Accretion Figure...")
 plotfunc_count = plotMAtreeFINALhist(scaleTOT, massTOT, VmaxarrayTOT, plotfunc_count)
 plt.clf()
-
 
 """
 PARSE RESULTS TO DETERMINE MASSS DISTRIBUTION AT SCALE. 
@@ -752,6 +797,101 @@ plt.savefig(figure_name)
 print("Saving plot: %s" % figure_name)
 plt.clf()
 
+"""
+===============================
+MAKE PLOT OF MAJOR MERGER INIT RESULTS
+===============================
+"""
+
+plt.title("Mass vs. Major Mergers Scale")
+plt.xlabel("Scale of Most Recent MM")
+plt.ylabel("Init Mass (M_sol)")
+#plt.xlim(0, 1)
+#plt.ylim(0, ymax)
+
+print("Number of Halos Represented: %d " % len(most_recent_MM_scale_HALOID))
+
+plt.scatter(most_recent_MM_scale_LIST, most_recent_MM_scale_initMASS, label = 'MM initmass')
+#plt.scatter(most_recent_MM_scale_LIST, most_recent_MM_scale_MMMASS, c='r', label = 'MM mergemass')
+
+plt.legend(loc='best')
+figure_name=os.path.expanduser('~/Mar29MajorMergersinitMassvScale' +'.png')
+plt.savefig(figure_name)
+print("Saving plot: %s" % figure_name)
+plt.clf()
+
+"""
+===============================
+MAKE PLOT OF MAJOR MERGER PREV RESULTS
+===============================
+"""
+
+plt.title("Mass vs. Major Mergers Scale")
+plt.xlabel("Scale of Most Recent MM")
+plt.ylabel("Merger Mass (M_sol)")
+#plt.xlim(0, 1)
+#plt.ylim(0, ymax)
+
+#plt.scatter(most_recent_MM_scale_LIST, most_recent_MM_scale_initMASS, label = 'MM initmass')
+plt.scatter(most_recent_MM_scale_LIST, most_recent_MM_scale_MMMASS, c='r', label = 'MM mergemass')
+
+plt.yscale('log')
+plt.legend(loc='best')
+figure_name=os.path.expanduser('~/Mar29MajorMergersMERGMassvScale' +'.png')
+plt.savefig(figure_name)
+print("Saving plot: %s" % figure_name)
+plt.clf()
+
+"""
+===============================
+MAKE PLOT OF MAJOR MERGER DIFF RESULTS
+===============================
+"""
+
+plt.title("Mass vs. Major Mergers Scale")
+plt.xlabel("Scale of Most Recent MM")
+plt.ylabel("Merger Mass (M_sol)")
+#plt.xlim(0, 1)
+#plt.ylim(0, ymax)
+
+#plt.scatter(most_recent_MM_scale_LIST, most_recent_MM_scale_initMASS, label = 'MM initmass')
+plt.scatter(most_recent_MM_scale_LIST, most_recent_MM_scale_MassDiff, c='r', label = 'MM mergemass')
+
+plt.yscale('log')
+plt.legend(loc='best')
+figure_name=os.path.expanduser('~/Mar29MajorMergersDiffMassvScale' +'.png')
+plt.savefig(figure_name)
+print("Saving plot: %s" % figure_name)
+plt.clf()
+
+
+"""
+===============================
+MAKE PLOT OF MAJOR MERGER LOG RESULTS
+===============================
+"""
+
+plt.title("Mass vs. Major Mergers Scale")
+plt.xlabel("Scale of Most Recent MM")
+plt.ylabel("Mass (M_sol)")
+#plt.xlim(0, 1)
+#plt.ylim(0, ymax)
+
+print("NUmber of Halos Represented: %d " % len(most_recent_MM_scale_HALOID))
+
+plt.scatter(most_recent_MM_scale_LIST, most_recent_MM_scale_initMASS, label = 'MM initmass')
+plt.scatter(most_recent_MM_scale_LIST, most_recent_MM_scale_MMMASS, c='r', label = 'MM mergemass')
+
+plt.yscale('log')
+plt.legend(loc='best')
+figure_name=os.path.expanduser('~/Mar29MajorMergersMassvScaleLOG' +'.png')
+plt.savefig(figure_name)
+print("Saving plot: %s" % figure_name)
+plt.clf()
+
+
+
+
 
 """
 ========================================
@@ -789,7 +929,7 @@ plotfunc_count += 1
 yminv = 0 
 ymaxv = 2500*2.57*10**8.
 #The following code is to make the histogram appear much neater by eliminating values which are greatly out of range.
-plt.hist2d(LT9_halos_scales, LT9_halos_masses, (400, 700), cmap=plt.cm.jet, norm=matplotlib.colors.LogNorm() )
+plt.hist2d(LT9_halos_scales, LT9_halos_masses, (300, 700), cmap=plt.cm.jet, norm=matplotlib.colors.LogNorm() )
 plt.ylim([yminv, ymaxv])
 
 #plt.title(plot_title)
@@ -866,7 +1006,7 @@ plotfunc_count += 1
 yminv = 0 
 ymaxv = 2500*2.57*10**8.
 #The following code is to make the histogram appear much neater by eliminating values which are greatly out of range.
-plt.hist2d(GT9_halos_scales, GT9_halos_masses, (200, 500), cmap=plt.cm.jet, norm=matplotlib.colors.LogNorm() )
+plt.hist2d(GT9_halos_scales, GT9_halos_masses, (200, 400), cmap=plt.cm.jet, norm=matplotlib.colors.LogNorm() )
 plt.ylim([yminv, ymaxv])
 
 #plt.title(plot_title)
